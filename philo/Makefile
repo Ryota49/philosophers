@@ -8,7 +8,8 @@ SOURCES	=	sources/create_and_join.c \
 		 	sources/parsing.c \
 		 	sources/philosophers.c \
 			sources/routine.c \
-			sources/print_and_utils.c 
+			sources/print_and_utils.c \
+			sources/take_forks.c 
 
 OBJECTS =	$(SOURCES:.c=.o)
 

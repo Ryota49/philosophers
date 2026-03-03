@@ -61,11 +61,12 @@ void	init_philo(t_rules *info, t_philo *philo);
 void	create_thread_philo(t_rules *info, t_philo *philo);
 void	join_thread_philo(t_rules *info, t_philo *philo);
 
-/* print and utils functions */
+/* print and utils functions in routine */
 
 int		print_msg(t_philo *philo, char *msg);
 long	get_time_ms(void);
 int		is_stopped(t_rules *rules);
+int		one_philo_only(t_philo *philo);
 
 /* fill the list */
 
@@ -80,9 +81,12 @@ int		check_dead(t_philo *philo, int i);
 /* routine threads */
 
 void	*routine(void *data);
-int		eat_and_sleep(t_philo *philo);
+int		eat_thread(t_philo *philo);
 void	fixed_sleep(unsigned long n, t_rules *rules);
 int		take_forks(t_philo *philo);
+int		sleep_thread(t_philo *philo);
+int		pair_id(t_philo *philo);
+int		inpair_id(t_philo *philo);
 
 /* free and destroys mutex */
 

@@ -6,7 +6,7 @@
 /*   By: jemonthi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/16 19:11:40 by jemonthi          #+#    #+#             */
-/*   Updated: 2026/02/16 23:16:22 by jemonthi         ###   ########.fr       */
+/*   Updated: 2026/03/03 19:41:36 by jemonthi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,15 +34,16 @@ int	print_msg(t_philo *philo, char *msg)
 	return (0);
 }
 
-int	check_nbr_philo(t_philo *philo)
+int	one_philo_only(t_philo *philo)
 {
-	if (philo->rules->nbr_philo == 1)
-	{
-		usleep(philo->rules->time_to_die * 1000L);
-		pthread_mutex_unlock(philo->left_fork);
-		return (1);
-	}
-	return (0);
+	pthread_mutex_lock(philo->left_fork);
+	pthread_mutex_lock(&philo->rules->print_mutex);
+	printf("%ld %d has taken a fork\n",
+		get_time_ms() - philo->rules->start_time, philo->id);
+	pthread_mutex_unlock(&philo->rules->print_mutex);
+	usleep(philo->rules->time_to_die * 1000L);
+	pthread_mutex_unlock(philo->left_fork);
+	return (1);
 }
 
 int	is_stopped(t_rules *rules)

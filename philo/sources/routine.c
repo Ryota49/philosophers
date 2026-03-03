@@ -12,24 +12,6 @@
 
 #include "philosophers.h"
 
-int	take_forks(t_philo *philo)
-{
-	if (philo->id % 2 == 0)
-	{
-		pthread_mutex_lock(philo->right_fork);
-		pthread_mutex_lock(philo->left_fork);
-	}
-	else
-	{
-		pthread_mutex_lock(philo->left_fork);
-		pthread_mutex_lock(philo->right_fork);
-	}
-	pthread_mutex_lock(&philo->rules->lock_last_meal);
-	philo->last_meal = get_time_ms();
-	pthread_mutex_unlock(&philo->rules->lock_last_meal);
-	return (0);
-}
-
 void	fixed_sleep(unsigned long n, t_rules *rules)
 {
 	unsigned long	start;
@@ -43,7 +25,25 @@ void	fixed_sleep(unsigned long n, t_rules *rules)
 	}
 }
 
-int	eat_and_sleep(t_philo *philo)
+int	sleep_thread(t_philo *philo)
+{
+	long	time;
+
+	if (print_msg(philo, "is sleeping"))
+		return (1);
+	fixed_sleep(philo->rules->time_to_sleep, philo->rules);
+	if (philo->rules->nbr_philo % 2 != 0)
+	{
+		time = philo->rules->time_to_eat * 2 - philo->rules->time_to_sleep;
+		if (time < 0)
+			time = 0;
+		if (time > 0)
+			fixed_sleep((unsigned long)time, philo->rules);
+	}
+	return (0);
+}
+
+int	eat_thread(t_philo *philo)
 {
 	if (print_msg(philo, "is eating"))
 	{
@@ -57,11 +57,6 @@ int	eat_and_sleep(t_philo *philo)
 	fixed_sleep(philo->rules->time_to_eat, philo->rules);
 	pthread_mutex_unlock(philo->left_fork);
 	pthread_mutex_unlock(philo->right_fork);
-	if (print_msg(philo, "is sleeping"))
-		return (1);
-	fixed_sleep(philo->rules->time_to_sleep, philo->rules);
-	if (philo->rules->nbr_philo % 2 != 0)
-		fixed_sleep(philo->rules->time_to_eat / 2, philo->rules);
 	return (0);
 }
 
@@ -78,7 +73,9 @@ void	*routine(void *data)
 			break ;
 		if (take_forks(philo))
 			break ;
-		if (eat_and_sleep(philo))
+		if (eat_thread(philo))
+			break ;
+		if (sleep_thread(philo))
 			break ;
 	}
 	return (NULL);
