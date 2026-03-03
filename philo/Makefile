@@ -7,7 +7,8 @@ CFLAGS	=	-Wall -Wextra -Werror
 SOURCES	=	sources/create_and_join.c \
 		 	sources/parsing.c \
 		 	sources/philosophers.c \
-			sources/routine.c  
+			sources/routine.c \
+			sources/print_and_utils.c 
 
 OBJECTS =	$(SOURCES:.c=.o)
 

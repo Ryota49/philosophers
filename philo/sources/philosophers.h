@@ -61,16 +61,28 @@ void	init_philo(t_rules *info, t_philo *philo);
 void	create_thread_philo(t_rules *info, t_philo *philo);
 void	join_thread_philo(t_rules *info, t_philo *philo);
 
+/* print and utils functions */
+
+int		print_msg(t_philo *philo, char *msg);
+long	get_time_ms(void);
+int		is_stopped(t_rules *rules);
+
 /* fill the list */
 
 void	get_into_list(int argc, char **argv);
+
+/* monitor */
+
 void	*monitor(void *data);
-void	*routine(void *data);
-long	get_time_ms(void);
 int		check_done(t_philo *philo, int done);
 int		check_dead(t_philo *philo, int i);
-int		is_stopped(t_rules *rules);
+
+/* routine threads */
+
+void	*routine(void *data);
 int		eat_and_sleep(t_philo *philo);
+void	fixed_sleep(unsigned long n, t_rules *rules);
+int		take_forks(t_philo *philo);
 
 /* free and destroys mutex */
 
