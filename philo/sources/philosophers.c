@@ -44,7 +44,7 @@ void	*monitor(void *data)
 int	check_dead(t_philo *philo, int i)
 {
 	pthread_mutex_lock(&philo[0].rules->lock_last_meal);
-	if ((get_time_ms() - philo[i].last_meal) > philo[i].rules->time_to_die + 10)
+	if ((get_time_ms() - philo[i].last_meal) > philo[i].rules->time_to_die)
 	{
 		pthread_mutex_unlock(&philo[0].rules->lock_last_meal);
 		pthread_mutex_lock(&philo[0].rules->lock_stop);
@@ -97,10 +97,7 @@ void	get_into_list(int argc, char **argv)
 	pthread_create(&data, NULL, monitor, philo);
 	join_thread_philo(info, philo);
 	pthread_join(data, NULL);
-	destroy_all(info);
-	free (info->forks);
-	free (philo);
-	free (info);
+	destroy_all(info, philo);
 }
 
 int	main(int argc, char **argv)

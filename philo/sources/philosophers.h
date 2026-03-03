@@ -70,9 +70,10 @@ long	get_time_ms(void);
 int		check_done(t_philo *philo, int done);
 int		check_dead(t_philo *philo, int i);
 int		is_stopped(t_rules *rules);
+int		eat_and_sleep(t_philo *philo);
 
 /* free and destroys mutex */
 
-void	destroy_all(t_rules *info);
+void	destroy_all(t_rules *info, t_philo *philo);
 
 #endif

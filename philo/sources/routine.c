@@ -48,29 +48,18 @@ int	check_nbr_philo(t_philo *philo)
 int	take_forks(t_philo *philo)
 {
 	if (philo->id % 2 == 0)
-		pthread_mutex_lock(philo->right_fork);
-	else
-		pthread_mutex_lock(philo->left_fork);
-	if (print_msg(philo, "has taken a fork"))
 	{
-		if (philo->id % 2 == 0)
-			pthread_mutex_unlock(philo->right_fork);
-		else
-			pthread_mutex_unlock(philo->left_fork);
-		return (1);
-	}
-	if (check_nbr_philo(philo))
-		return (1);
-	if (philo->id % 2 == 0)
-		pthread_mutex_lock(philo->left_fork);
-	else
 		pthread_mutex_lock(philo->right_fork);
-	if (print_msg(philo, "has taken a fork"))
-	{
-		pthread_mutex_unlock(philo->left_fork);
-		pthread_mutex_unlock(philo->right_fork);
-		return (1);
+		pthread_mutex_lock(philo->left_fork);
 	}
+	else
+	{
+		pthread_mutex_lock(philo->left_fork);
+		pthread_mutex_lock(philo->right_fork);
+	}
+	pthread_mutex_lock(&philo->rules->lock_last_meal);
+	philo->last_meal = get_time_ms();
+	pthread_mutex_unlock(&philo->rules->lock_last_meal);
 	return (0);
 }
 
@@ -84,37 +73,56 @@ int	is_stopped(t_rules *rules)
 	return (ret);
 }
 
+void	fixed_sleep(unsigned long n, t_rules *rules)
+{
+	unsigned long	start;
+
+	start = get_time_ms();
+	while ((get_time_ms() - start) < n)
+	{
+		if (is_stopped(rules))
+			return ;
+		usleep(200);
+	}
+}
+
+int	eat_and_sleep(t_philo *philo)
+{
+	if (print_msg(philo, "is eating"))
+	{
+		pthread_mutex_unlock(philo->left_fork);
+		pthread_mutex_unlock(philo->right_fork);
+		return (1);
+	}
+	pthread_mutex_lock(&philo->rules->lock_meals_eaten);
+	philo->meals_eaten++;
+	pthread_mutex_unlock(&philo->rules->lock_meals_eaten);
+	fixed_sleep(philo->rules->time_to_eat, philo->rules);
+	pthread_mutex_unlock(philo->left_fork);
+	pthread_mutex_unlock(philo->right_fork);
+	if (print_msg(philo, "is sleeping"))
+		return (1);
+	fixed_sleep(philo->rules->time_to_sleep, philo->rules);
+	if (philo->rules->nbr_philo % 2 != 0)
+		fixed_sleep(philo->rules->time_to_eat / 2, philo->rules);
+	return (0);
+}
+
 void	*routine(void *data)
 {
 	t_philo	*philo;
 
 	philo = data;
 	if (philo->id % 2 == 0)
-		usleep(1000);
+		fixed_sleep(philo->rules->time_to_eat, philo->rules);
 	while (!is_stopped(philo->rules))
 	{
 		if (print_msg(philo, "is thinking"))
 			break ;
 		if (take_forks(philo))
 			break ;
-		pthread_mutex_lock(&philo[0].rules->lock_last_meal);
-		philo->last_meal = get_time_ms();
-		pthread_mutex_unlock(&philo[0].rules->lock_last_meal);
-		if (print_msg(philo, "is eating"))
-		{
-			pthread_mutex_unlock(philo->left_fork);
-			pthread_mutex_unlock(philo->right_fork);
+		if (eat_and_sleep(philo))
 			break ;
-		}
-		pthread_mutex_lock(&philo[0].rules->lock_meals_eaten);
-		philo->meals_eaten++;
-		pthread_mutex_unlock(&philo[0].rules->lock_meals_eaten);
-		usleep(philo->rules->time_to_eat * 1000L);
-		pthread_mutex_unlock(philo->left_fork);
-		pthread_mutex_unlock(philo->right_fork);
-		if (print_msg(philo, "is sleeping"))
-			break ;
-		usleep(philo->rules->time_to_sleep * 1000L);
 	}
 	return (NULL);
 }

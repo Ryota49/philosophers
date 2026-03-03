@@ -67,11 +67,10 @@ void	join_thread_philo(t_rules *info, t_philo *philo)
 	{
 		pthread_join(philo[i].thread, NULL);
 		i++;
-		usleep(512);
 	}
 }
 
-void	destroy_all(t_rules *info)
+void	destroy_all(t_rules *info, t_philo *philo)
 {
 	int	i;
 
@@ -85,4 +84,7 @@ void	destroy_all(t_rules *info)
 		pthread_mutex_destroy(&info->forks[i]);
 		i++;
 	}
+	free (info->forks);
+	free (philo);
+	free (info);
 }
