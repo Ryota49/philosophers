@@ -34,7 +34,7 @@ int	sleep_thread(t_philo *philo)
 	fixed_sleep(philo->rules->time_to_sleep, philo->rules);
 	if (philo->rules->nbr_philo % 2 != 0)
 	{
-		time = philo->rules->time_to_eat * 2 - philo->rules->time_to_sleep;
+		time = philo->rules->time_to_eat - philo->rules->time_to_sleep;
 		if (time < 0)
 			time = 0;
 		if (time > 0)
