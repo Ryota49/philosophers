@@ -55,7 +55,7 @@ int	convert_to_long(char **argv)
 		number = ft_atol(argv[i]);
 		if (number <= 0 || number > INT_MAX)
 		{
-			write (2, "Error: number is zero or higher than INT_MAX\n", 45);
+			write (2, "Error: Number is zero or higher than INT_MAX\n", 45);
 			return (1);
 		}
 		i++;

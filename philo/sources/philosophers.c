@@ -12,73 +12,32 @@
 
 #include "philosophers.h"
 
-void	*monitor(void *data)
-{
-	t_philo	*philo;
-	int		i;
-	int		done;
-
-	philo = data;
-	while (!is_stopped(philo->rules))
-	{
-		i = 0;
-		done = 0;
-		while (i < philo[0].rules->nbr_philo)
-		{
-			if (check_dead(philo, i))
-				return (NULL);
-			pthread_mutex_lock(&philo[0].rules->lock_meals_eaten);
-			if (philo[i].meals_eaten >= philo[i].rules->must_eat
-				&& philo[0].rules->must_eat != -1)
-				done++;
-			pthread_mutex_unlock(&philo[0].rules->lock_meals_eaten);
-			i++;
-		}
-		if (check_done(philo, done))
-			break ;
-		usleep(1000);
-	}
-	return (NULL);
-}
-
-int	check_dead(t_philo *philo, int i)
-{
-	pthread_mutex_lock(&philo[0].rules->lock_last_meal);
-	if ((get_time_ms() - philo[i].last_meal) > philo[i].rules->time_to_die)
-	{
-		pthread_mutex_unlock(&philo[0].rules->lock_last_meal);
-		pthread_mutex_lock(&philo[0].rules->lock_stop);
-		philo[0].rules->stop = 1;
-		pthread_mutex_unlock(&philo[0].rules->lock_stop);
-		pthread_mutex_lock(&philo[0].rules->print_mutex);
-		printf("%ld %d died\n",
-			get_time_ms() - philo[i].rules->start_time, philo[i].id);
-		pthread_mutex_unlock(&philo[0].rules->print_mutex);
-		return (1);
-	}
-	pthread_mutex_unlock(&philo[0].rules->lock_last_meal);
-	return (0);
-}
-
-int	check_done(t_philo *philo, int done)
-{
-	if (done == philo[0].rules->nbr_philo)
-	{
-		pthread_mutex_lock(&philo[0].rules->lock_stop);
-		philo[0].rules->stop = 1;
-		pthread_mutex_unlock(&philo[0].rules->lock_stop);
-		return (1);
-	}
-	return (0);
-}
-
 void	get_into_list(int argc, char **argv)
 {
 	t_rules		*info;
 	t_philo		*philo;
-	pthread_t	data;
 
 	info = malloc(sizeof(t_rules));
+	if (!info)
+	{
+		write (2, "Error: Malloc of info has failed\n", 33);
+		return ;
+	}
+	if (fill_info(argc, argv, info))
+		return ;
+	philo = malloc(sizeof(t_philo) * info->nbr_philo);
+	if (!philo)
+	{
+		write (2, "Error: Malloc of philo has failed\n", 34);
+		free (info->forks);
+		free (info);
+		return ;
+	}
+	simulate_threads(info, philo);
+}
+
+int	fill_info(int argc, char **argv, t_rules *info)
+{
 	info->nbr_philo = ft_atol(argv[1]);
 	info->time_to_die = ft_atol(argv[2]);
 	info->time_to_eat = ft_atol(argv[3]);
@@ -90,7 +49,19 @@ void	get_into_list(int argc, char **argv)
 	info->start_time = get_time_ms();
 	info->stop = 0;
 	info->forks = malloc(sizeof(pthread_mutex_t) * info->nbr_philo);
-	philo = malloc(sizeof(t_philo) * info->nbr_philo);
+	if (!info->forks)
+	{
+		write (2, "Error: Malloc of forks has failed\n", 34);
+		free (info);
+		return (1);
+	}
+	return (0);
+}
+
+void	simulate_threads(t_rules *info, t_philo *philo)
+{
+	pthread_t	data;
+
 	init_forks(info);
 	init_philo(info, philo);
 	create_thread_philo(info, philo);
@@ -104,7 +75,7 @@ int	main(int argc, char **argv)
 {
 	if (argc < 5 || argc > 6)
 	{
-		write(2, "Error: wrong number of arguments\n", 33);
+		write(2, "Error: Wrong number of arguments\n", 33);
 		return (1);
 	}
 	if (check_argv(argv) == 0)

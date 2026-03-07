@@ -68,9 +68,11 @@ long	get_time_ms(void);
 int		is_stopped(t_rules *rules);
 int		one_philo_only(t_philo *philo);
 
-/* fill the list */
+/* fill the list and call function for the simulation */
 
 void	get_into_list(int argc, char **argv);
+int		fill_info(int argc, char **argv, t_rules *info);
+void	simulate_threads(t_rules *info, t_philo *philo);
 
 /* monitor */
 
